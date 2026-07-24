@@ -180,7 +180,7 @@ step_wrapper(
 
 ## Added
 
-* `func_counter` on `WorkflowStep`
+* `step_counter` on `WorkflowStep`
 * `_cursor` on `WorkflowContext`
 * `next_counter()` — increments and returns the workflow's step cursor
 
