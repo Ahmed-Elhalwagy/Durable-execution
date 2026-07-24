@@ -24,7 +24,10 @@ class StepStatus(str, Enum):
 
 @dataclass
 class WorkflowStep:
+    # 2 identifiers
     func_name: str
+    step_counter: int
+
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
     start_date: datetime = field(default_factory=datetime.now)
     end_date: datetime | None = field(default=None)
@@ -48,11 +51,13 @@ class WorkflowStep:
 class WorkflowContext:
     func_name: str
     id: str = field(default_factory=lambda: str(uuid.uuid4()))
+
     status: WorflowStatus = field(default=WorflowStatus.RUNNING)
     steps: list[WorkflowStep] = field(default_factory=list)
+    _cursor: int = field(default=0, compare=False) # this cursor is incremented when step is executed
+
     start_date: datetime = field(default_factory=datetime.now)
     end_date: datetime | None = field(default=None)
-
 
     input_arguments: dict = field(default_factory=dict)
     return_data : Any = field(default=None)
@@ -67,6 +72,10 @@ class WorkflowContext:
         self.status = new_status
         if new_status == WorflowStatus.COMPLETED:
             self.end_date = datetime.now()
+
+    def next_counter(self) -> int:
+        self._cursor += 1
+        return self._cursor
 
     def update_return_date(self, data:Any):
         self.return_data = data
@@ -98,61 +107,63 @@ def worflow_wrapper(func: Callable[[WorkflowContext], None], args: dict[str, Any
     ctx = WorkflowContext(status=WorflowStatus.RUNNING, func_name=func.__name__)
     try:
         ctx.save_input_arguments(args)
-        data = func(ctx, **args)
+        result = func(ctx, **args)
         ctx.update_status(WorflowStatus.COMPLETED)
-        ctx.update_return_date(data)
+        ctx.update_return_date(result)
     except Exception as error:
         ctx.update_status(WorflowStatus.ERROR)
 
 def step_wrapper(ctx: WorkflowContext, func: Callable[[], None],  args: dict[str, Any] | None = None):
     args = args or {}
-    step_exist: WorkflowStep | None = next((step for step in ctx.steps if step.func_name == func.__name__), None)
+    step_counter = ctx.next_counter()
+
+    step_exist = next(
+        (s for s in ctx.steps
+         if s.func_name == func.__name__ and s.step_counter == step_counter),
+        None,
+    )
     try:
+        # resume skipping logic
         if step_exist:
             if step_exist.status == StepStatus.COMPLETED:
                 return step_exist.return_data
             elif step_exist.status == StepStatus.RUNNING:
                 step = step_exist
         else:
-            step = WorkflowStep(status=StepStatus.RUNNING, func_name=func.__name__)
+            step = WorkflowStep(status=StepStatus.RUNNING, func_name=func.__name__, step_counter=step_counter)
             step.save_input_arguments(args)
             ctx.add_step(step)
-        func_return = func(**args)
+        result = func(**args) # execute step
         step.update_step_status(StepStatus.COMPLETED)
-        step.update_step_return_data(func_return)
+        step.update_step_return_data(result)
 
-        return func_return
+        return result
     except Exception as error:
         raise
 
 
 def useCase(ctx: WorkflowContext):
     order_id = step_wrapper(ctx, verify_order)
+    
     withdraw = step_wrapper(ctx, withdraw_money, {"order_id": order_id})
+
+    order_id = step_wrapper(ctx, verify_order)
+
     email = step_wrapper(ctx, send_email, {"order_id": order_id})
 
-stored_states : list[WorkflowContext] = [
-    WorkflowContext(
-        id = "dd7e2e94-bd9c-4f4c-939e-a7f6d477f527",
-        func_name="useCase",
-        status= WorflowStatus.RUNNING,
-        steps=[
-            WorkflowStep(id="dd7e2e94-bd9c-4f4c-939e-a7f6d477f521", status=WorflowStatus.COMPLETED, func_name="verify_order", return_data="dd7e2e94-bd9c-4f4c-939e-a7f6d477f100", end_date=None),
-        ]
-)
-]
-
 def resume(workflow_id: str):
-    workflow_state: WorkflowContext | None = next((w for w in stored_states if w.id == workflow_id), None)  
+    from store import stored_states
+    workflow_state: WorkflowContext | None = next((w for w in stored_states if w.id == workflow_id), None)
     if(workflow_state and workflow_state.status != WorflowStatus.COMPLETED):
+        workflow_state._cursor = 0
         func = globals()[workflow_state.func_name]
         func(workflow_state)
     else:
         return
 
-
 def main():
-    resume("dd7e2e94-bd9c-4f4c-939e-a7f6d477f527")
+    # resume("dd7e2e94-bd9c-4f4c-939e-a7f6d477f527")
+    resume("e0f1251a-36ee-4118-9806-2ee547300151")
     # worflow_wrapper(useCase)
 
 

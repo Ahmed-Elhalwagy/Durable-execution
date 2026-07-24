@@ -176,6 +176,33 @@ step_wrapper(
 
 ---
 
+# v0.9.1 — Repeated Step Disambiguation
+
+## Added
+
+* `func_counter` on `WorkflowStep`
+* `_cursor` on `WorkflowContext`
+* `next_counter()` — increments and returns the workflow's step cursor
+
+## Improved
+
+* `step_wrapper()` now matches existing steps by `func_name` **and** `func_counter`, not `func_name` alone.
+* Same activity can now be called more than once within a single workflow without result collisions.
+
+Example
+
+```python
+def useCase(ctx: WorkflowContext):
+    order_id = step_wrapper(ctx, verify_order)
+    withdraw = step_wrapper(ctx, withdraw_money, {"order_id": order_id})
+    order_id = step_wrapper(ctx, verify_order)  # second call, distinct counter
+    email = step_wrapper(ctx, send_email, {"order_id": order_id})
+```
+
+* `resume()` resets `_cursor` to `0` before replay so counters realign with the original execution order.
+
+---
+
 # Planned
 
 ## v0.10.0
