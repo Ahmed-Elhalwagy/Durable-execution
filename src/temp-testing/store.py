@@ -1,78 +1,200 @@
-from main import WorkflowContext, WorkflowStep, StepStatus, WorflowStatus
+from main import (
+    WorkflowContext,
+    WorkflowStep,
+    StepStatus,
+    WorkflowStatus,
+    WorkflowEvent,
+    WorkflowEventType,
+    Args,
+)
+
 from datetime import datetime
-from uuid import  UUID
+from uuid import UUID
+
 
 stored_states: list[WorkflowContext] = [
+
+    # Workflow paused after verify_order completed
     WorkflowContext(
         id="dd7e2e94-bd9c-4f4c-939e-a7f6d477f527",
-        func_name="useCase",
-        status=WorflowStatus.RUNNING,
+        workflow_name="useCase",
+        status=WorkflowStatus.RUNNING,
+        
+        input_arguments=Args(),
+
         steps=[
             WorkflowStep(
                 id="dd7e2e94-bd9c-4f4c-939e-a7f6d477f521",
-                status=StepStatus.COMPLETED,
-                func_name="verify_order",
-                return_data="dd7e2e94-bd9c-4f4c-939e-a7f6d477f100",
-                end_date=None,
+                step_name="verify_order",
                 step_counter=1,
-            ),
+                status=StepStatus.COMPLETED,
+
+                input_arguments=Args(),
+
+                return_data=UUID(
+                    "dd7e2e94-bd9c-4f4c-939e-a7f6d477f100"
+                ),
+
+                start_date=datetime(2026, 7, 24, 5, 0, 0),
+                end_date=datetime(2026, 7, 24, 5, 0, 1),
+            )
         ],
+
         _cursor=1,
+
+        events=[
+            WorkflowEvent(
+                event_type=WorkflowEventType.WORKFLOW_STARTED,
+                message="Workflow useCase started"
+            ),
+
+            WorkflowEvent(
+                event_type=WorkflowEventType.STEP_CREATED,
+                step_id="dd7e2e94-bd9c-4f4c-939e-a7f6d477f521",
+                step_name="verify_order",
+                message="Created step verify_order"
+            ),
+
+            WorkflowEvent(
+                event_type=WorkflowEventType.STEP_STARTED,
+                step_id="dd7e2e94-bd9c-4f4c-939e-a7f6d477f521",
+                step_name="verify_order",
+            ),
+
+            WorkflowEvent(
+                event_type=WorkflowEventType.STEP_COMPLETED,
+                step_id="dd7e2e94-bd9c-4f4c-939e-a7f6d477f521",
+                step_name="verify_order",
+                data=UUID(
+                    "dd7e2e94-bd9c-4f4c-939e-a7f6d477f100"
+                ),
+                message="verify_order completed"
+            ),
+        ]
     ),
+
+
+
+    # Workflow crashed while send_email was running
     WorkflowContext(
-        func_name="useCase",
         id="e0f1251a-36ee-4118-9806-2ee547300151",
-        status=WorflowStatus.RUNNING,
+        workflow_name="useCase",
+        status=WorkflowStatus.RUNNING,
+        
+        input_arguments=Args(),
+
         steps=[
+
             WorkflowStep(
-                func_name="verify_order",
-                step_counter=1,
                 id="f7f712f3-0567-4ca5-816e-1076787224ea",
-                start_date=datetime(2026, 7, 24, 5, 6, 32, 401427),
-                end_date=datetime(2026, 7, 24, 5, 6, 33, 401616),
+                step_name="verify_order",
+                step_counter=1,
                 status=StepStatus.COMPLETED,
-                input_arguments={},
-                return_data=UUID("ba55ab72-c083-4153-87a1-7d98af23c5df"),
+                
+                input_arguments=Args(),
+
+                return_data=UUID(
+                    "ba55ab72-c083-4153-87a1-7d98af23c5df"
+                ),
+
+                start_date=datetime(2026,7,24,5,6,32),
+                end_date=datetime(2026,7,24,5,6,33),
             ),
+
+
             WorkflowStep(
-                func_name="withdraw_money",
-                step_counter=2,
                 id="c4001a4e-8ae4-49e7-9060-abca2ba7ba9c",
-                start_date=datetime(2026, 7, 24, 5, 6, 33, 401736),
-                end_date=datetime(2026, 7, 24, 5, 6, 34, 401913),
+                step_name="withdraw_money",
+                step_counter=2,
                 status=StepStatus.COMPLETED,
-                input_arguments={
-                    "order_id": UUID("ba55ab72-c083-4153-87a1-7d98af23c5df")
-                },
+
+                input_arguments=Args(
+                    args=(
+                        UUID("ba55ab72-c083-4153-87a1-7d98af23c5df"),
+                    )
+                ),
+
                 return_data="withdraw_money_return",
+
+                start_date=datetime(2026,7,24,5,6,33),
+                end_date=datetime(2026,7,24,5,6,34),
             ),
+
+
             WorkflowStep(
-                func_name="verify_order",
-                step_counter=3,
                 id="458f4470-dc0f-4167-a3de-40d059d23343",
-                start_date=datetime(2026, 7, 24, 5, 6, 34, 402028),
-                end_date=datetime(2026, 7, 24, 5, 6, 35, 402270),
+                step_name="verify_order",
+                step_counter=3,
                 status=StepStatus.COMPLETED,
-                input_arguments={},
-                return_data=UUID("7ef33c56-b736-439c-b27c-d6791884fec7"),
+                
+                input_arguments=Args(),
+
+                return_data=UUID(
+                    "7ef33c56-b736-439c-b27c-d6791884fec7"
+                ),
+
+                start_date=datetime(2026,7,24,5,6,34),
+                end_date=datetime(2026,7,24,5,6,35),
             ),
+
+
             WorkflowStep(
-                func_name="send_email",
-                step_counter=4,
                 id="e7aeccbc-3dbf-4eff-abb0-0f92c7d7dbc8",
-                start_date=datetime(2026, 7, 24, 5, 6, 35, 402383),
-                end_date=datetime(2026, 7, 24, 5, 6, 36, 402573),
+                step_name="send_email",
+                step_counter=4,
                 status=StepStatus.RUNNING,
-                input_arguments={
-                    "order_id": UUID("7ef33c56-b736-439c-b27c-d6791884fec7")
-                },
+
+                input_arguments=Args(
+                    args=(
+                        UUID("7ef33c56-b736-439c-b27c-d6791884fec7"),
+                    )
+                ),
+
                 return_data=None,
+
+                start_date=datetime(2026,7,24,5,6,35),
+                end_date=None,
             ),
         ],
+
         _cursor=4,
-        start_date=datetime(2026, 7, 24, 5, 6, 32, 401356),
-        end_date=None,
-        input_arguments={},
-        return_data=None,
+
+        events=[
+
+            WorkflowEvent(
+                event_type=WorkflowEventType.WORKFLOW_STARTED,
+            ),
+
+
+            WorkflowEvent(
+                event_type=WorkflowEventType.STEP_COMPLETED,
+                step_name="verify_order",
+                data=UUID(
+                    "ba55ab72-c083-4153-87a1-7d98af23c5df"
+                )
+            ),
+
+
+            WorkflowEvent(
+                event_type=WorkflowEventType.STEP_COMPLETED,
+                step_name="withdraw_money",
+                data="withdraw_money_return"
+            ),
+
+
+            WorkflowEvent(
+                event_type=WorkflowEventType.STEP_COMPLETED,
+                step_name="verify_order",
+                data=UUID(
+                    "7ef33c56-b736-439c-b27c-d6791884fec7"
+                )
+            ),
+
+            WorkflowEvent(
+                event_type=WorkflowEventType.STEP_STARTED,
+                step_name="send_email",
+                step_id="e7aeccbc-3dbf-4eff-abb0-0f92c7d7dbc8"
+            ),
+       ]
     )
 ]

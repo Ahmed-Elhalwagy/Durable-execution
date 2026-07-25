@@ -180,7 +180,7 @@ step_wrapper(
 
 ## Added
 
-* `step_counter` on `WorkflowStep`
+* `func_counter` on `WorkflowStep`
 * `_cursor` on `WorkflowContext`
 * `next_counter()` — increments and returns the workflow's step cursor
 
@@ -203,21 +203,40 @@ def useCase(ctx: WorkflowContext):
 
 ---
 
+# v0.10.0 — Async Execution & Event History
+
+## Added
+
+* `WorkflowEventType` enum — workflow, step, retry, and state event kinds
+* `WorkflowEvent` dataclass — `id`, `step_id`, `step_name`, `timestamp`, `message`, `data`, `error`
+* `events` list on `WorkflowContext`
+* `add_event()` on `WorkflowContext`
+* Events emitted for: workflow started/completed/failed/resumed, step created/started/completed/failed/skipped
+* `asyncio`-based execution — `workflow()` and `workflow_step()` now `async`, run sync activities via `asyncio.to_thread`
+* `inspect.iscoroutinefunction()` check to support both sync and async activities (`withdraw_money` is now async)
+* `resume()` now returns the workflow's result, and returns early if already `COMPLETED`
+
+## Improved
+
+* `WorkflowStep.func_name` renamed to `step_name`; `WorkflowContext.func_name` renamed to `workflow_name`
+* `WorflowStatus` typo fixed to `WorkflowStatus` throughout
+* `worflow_wrapper()` / `step_wrapper()` renamed to `workflow()` / `workflow_step()`
+* `add_step()` now returns the added step
+* `useCase()` returns a result dict instead of nothing
+
+## Notes
+
+Event log lays groundwork for distributed tracing across steps.
+
+---
+
 # Planned
 
-## v0.10.0
+## v0.11.0
 
 * Workflow repository abstraction
 * Persistent storage layer
 * JSON/SQLite/PostgreSQL support
-
----
-
-## v0.11.0
-
-* Workflow event history
-* Event sourcing
-* State reconstruction from events
 
 ---
 
