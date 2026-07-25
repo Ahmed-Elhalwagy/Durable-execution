@@ -41,3 +41,9 @@ Note: Here I am more in Temporal Philosiphe Each Workflow (Use Case) is Gurantee
 - Workflow output persistence
 - Execution timestamps
 - Step timestamps
+- Async step execution (sync and async activities both supported)
+- Workflow event log (execution history / tracing groundwork)
+
+---
+
+See [ChangeLog.md](ChangeLog.md) for version-by-version detail and what's planned next.
